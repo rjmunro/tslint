@@ -287,16 +287,22 @@ class TypedefWhitespaceWalker extends Lint.RuleWalker {
 
     private performFailureCheck(optionValue: string, hasWS: boolean, hasSeveralWS: boolean, failurePos: number, message: string) {
         // has several spaces but should have one or none
-        let isFailure = hasSeveralWS &&
+        let tooManyFail = hasSeveralWS &&
             (optionValue === "onespace" || optionValue === "nospace");
         // has at least one space but should have none
-        isFailure = isFailure || hasWS && optionValue === "nospace";
-        // has no space but should have at least one
-        isFailure = isFailure || !hasWS &&
-            (optionValue === "onespace" || optionValue === "space");
+        tooManyFail = tooManyFail || hasWS && optionValue === "nospace";
 
-        if (isFailure) {
-            this.addFailureAt(failurePos, 1, message);
+        if (tooManyFail) {
+            const replacement = new Lint.Replacement(failurePos, 1, "");
+            const fix = new Lint.Fix("typedef-whitespace-rule", [replacement]);
+            this.addFailureAt(failurePos, 1, message, fix);
+        }
+
+        // has no space but should have at least one
+        if (!hasWS && (optionValue === "onespace" || optionValue === "space")) {
+            const replacement = new Lint.Replacement(failurePos, 0, " ");
+            const fix = new Lint.Fix("typedef-whitespace-rule", [replacement]);
+            this.addFailureAt(failurePos, 1, message, fix);
         }
     }
 }
