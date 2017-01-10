@@ -239,6 +239,7 @@ class TypedefWhitespaceWalker extends Lint.RuleWalker {
                 hasSeveralLeadingWhitespaces,
                 colonPosition - 1,
                 message,
+                colonPosition - (hasLeadingWhitespace ? 1 : 0),
             );
         }
     }
@@ -281,11 +282,12 @@ class TypedefWhitespaceWalker extends Lint.RuleWalker {
                 hasSeveralTrailingWhitespaces,
                 colonPosition + 1,
                 message,
+                colonPosition + 1,
             );
         }
     }
 
-    private performFailureCheck(optionValue: string, hasWS: boolean, hasSeveralWS: boolean, failurePos: number, message: string) {
+    private performFailureCheck(optionValue: string, hasWS: boolean, hasSeveralWS: boolean, failurePos: number, message: string, fixPos: number) {
         // has several spaces but should have one or none
         let tooManyFail = hasSeveralWS &&
             (optionValue === "onespace" || optionValue === "nospace");
@@ -293,14 +295,14 @@ class TypedefWhitespaceWalker extends Lint.RuleWalker {
         tooManyFail = tooManyFail || hasWS && optionValue === "nospace";
 
         if (tooManyFail) {
-            const replacement = new Lint.Replacement(failurePos, 1, "");
+            const replacement = new Lint.Replacement(fixPos, 1, "");
             const fix = new Lint.Fix("typedef-whitespace-rule", [replacement]);
             this.addFailureAt(failurePos, 1, message, fix);
         }
 
         // has no space but should have at least one
         if (!hasWS && (optionValue === "onespace" || optionValue === "space")) {
-            const replacement = new Lint.Replacement(failurePos, 0, " ");
+            const replacement = new Lint.Replacement(fixPos, 0, " ");
             const fix = new Lint.Fix("typedef-whitespace-rule", [replacement]);
             this.addFailureAt(failurePos, 1, message, fix);
         }
